@@ -75,7 +75,6 @@ open class ContinueControl: UIControl {
             .map({ $0.0 && $0.1.y >= -height })
             .removeDuplicates()
             .sink { [weak self] (isVisible) in
-                print(isVisible)
                 if isVisible {
                     self?.startContinuing()
                 }
