@@ -14,7 +14,8 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "ContinueControl"
+            name: "ContinueControl",
+            resources: [.copy("Resources/PrivacyInfo.xcprivacy")]
         ),
         .testTarget(
             name: "ContinueControlTests",
