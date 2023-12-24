@@ -8,6 +8,7 @@
 
 - [x] UIRefreshControl like API
 - [x] Safe trigger system
+- [x] Haptic feedback 
 
 # Usage
 
