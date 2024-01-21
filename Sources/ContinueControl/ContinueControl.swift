@@ -10,7 +10,9 @@ fileprivate let logger = Logger(
 
 @MainActor
 open class ContinueControl: UIControl {
+    #if os(iOS)
     let feedbackGenerator = UIImpactFeedbackGenerator(style: .rigid)
+    #endif
     let indicatorView = UIActivityIndicatorView(style: .medium)
     let height: Double = 60
     let layoutGuide = ScrollContentLayoutGuide()
@@ -92,7 +94,9 @@ open class ContinueControl: UIControl {
     }
     
     func triggerPrimaryAction() {
+#if os(iOS)
         feedbackGenerator.impactOccurred()
+        #endif
         sendActions(for: .primaryActionTriggered)
     }
     
