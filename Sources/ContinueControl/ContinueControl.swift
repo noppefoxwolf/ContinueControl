@@ -147,6 +147,7 @@ extension UIScrollView {
     var needsScrollContentSize: Bool {
         var visibleContentSize: CGSize = .zero
         visibleContentSize.height = bounds.height.rounded()
+        guard visibleContentSize.height > 0 else { return false }
         visibleContentSize.height -= safeAreaInsets.top.rounded()
         visibleContentSize.height -= safeAreaInsets.bottom.rounded()
         return contentSize.height.rounded() > visibleContentSize.height.rounded()
