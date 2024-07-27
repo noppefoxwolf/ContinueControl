@@ -41,13 +41,17 @@ open class ContinueControl: UIControl {
         if let oldScrollView = scrollView {
             oldScrollView.removeLayoutGuide(layoutGuide)
             
-            oldScrollView.contentInset.bottom -= height
+            if oldScrollView.contentInset.bottom.isNormal {
+                oldScrollView.contentInset.bottom -= height
+            }
         }
         
         if let newScrollView = newSuperview as? UIScrollView {
             newScrollView.addLayoutGuide(layoutGuide)
             
-            newScrollView.contentInset.bottom += height
+            if newScrollView.contentInset.bottom.isNormal {
+                newScrollView.contentInset.bottom += height
+            }
         }
     }
     
