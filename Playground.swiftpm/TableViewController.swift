@@ -38,7 +38,9 @@ final class ContinueViewController: UITableViewController {
                 print("Refresh!")
                 try await Task.sleep(for: .seconds(3))
                 self.snapshot.appendItems((0..<10).map({ _ in Item() }), toSection: .items)
-                await self.dataSource.apply(self.snapshot)
+                await MainActor.run {
+                    self.dataSource.apply(self.snapshot)
+                }
                 self.continueControl?.finishContinuing()
             }
         }, for: .primaryActionTriggered)
