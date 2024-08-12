@@ -11,7 +11,7 @@ fileprivate let logger = Logger(
 @MainActor
 open class ContinueControl: UIControl {
     #if os(iOS)
-    let feedbackGenerator = UIImpactFeedbackGenerator(style: .rigid)
+    let feedbackGenerator = UIImpactFeedbackGenerator(style: .soft)
     #endif
     let indicatorView = UIActivityIndicatorView(style: .medium)
     let height: Double = 60
