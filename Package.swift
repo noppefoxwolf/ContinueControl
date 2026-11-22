@@ -5,7 +5,7 @@ import PackageDescription
 
 let package = Package(
     name: "ContinueControl",
-    platforms: [.iOS(.v18), .visionOS(.v1)],
+    platforms: [.iOS(.v18), .visionOS(.v2)],
     products: [
         .library(
             name: "ContinueControl",
