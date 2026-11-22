@@ -1,40 +1,41 @@
-import XCTest
+import Testing
 import UIKit
 @testable import ContinueControl
 
-final class ContinueControlTests: XCTestCase {
-    @MainActor
-    func testActionCanFinishContinuingSynchronously() {
+@MainActor
+struct ContinueControlTests {
+    @Test
+    func `Action can finish continuing synchronously`() {
         let control = ContinueControl()
         var didTrigger = false
 
         control.addAction(UIAction { [weak control] _ in
             didTrigger = true
-            XCTAssertEqual(control?.isContinuing, true)
+            #expect(control?.isContinuing == true)
             control?.finishContinuing()
         }, for: .primaryActionTriggered)
 
         control.startContinuing()
 
-        XCTAssertTrue(didTrigger)
-        XCTAssertFalse(control.isContinuing)
+        #expect(didTrigger)
+        #expect(!control.isContinuing)
     }
 
-    @MainActor
-    func testMovingControlPreservesEachScrollViewsBottomInset() {
+    @Test
+    func `Moving control preserves each scroll view's bottom inset`() {
         let first = UIScrollView()
         let second = UIScrollView()
         second.contentInset.bottom = 20
         let control = ContinueControl()
 
         first.continueControl = control
-        XCTAssertEqual(first.contentInset.bottom, control.height)
+        #expect(first.contentInset.bottom == control.height)
 
         second.continueControl = control
-        XCTAssertEqual(first.contentInset.bottom, 0)
-        XCTAssertEqual(second.contentInset.bottom, 20 + control.height)
+        #expect(first.contentInset.bottom == 0)
+        #expect(second.contentInset.bottom == 20 + control.height)
 
         second.continueControl = nil
-        XCTAssertEqual(second.contentInset.bottom, 20)
+        #expect(second.contentInset.bottom == 20)
     }
 }
