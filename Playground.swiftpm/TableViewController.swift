@@ -33,10 +33,15 @@ final class ContinueViewController: UITableViewController {
         super.viewDidLoad()
         
         continueControl = ContinueControl()
-        continueControl!.addAction(UIAction { _ in
+        continueControl!.addAction(UIAction { [weak self] _ in
             Task {
                 print("Refresh!")
-                try await Task.sleep(for: .seconds(3))
+                do {
+                    try await Task.sleep(for: .seconds(3))
+                } catch {
+                    return
+                }
+                guard let self else { return }
                 self.snapshot.appendItems((0..<10).map({ _ in Item() }), toSection: .items)
                 await MainActor.run {
                     self.dataSource.apply(self.snapshot)
