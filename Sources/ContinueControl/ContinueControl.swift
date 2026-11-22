@@ -14,9 +14,10 @@ open class ContinueControl: UIControl {
     let feedbackGenerator = UIImpactFeedbackGenerator(style: .soft)
     #endif
     let indicatorView = UIActivityIndicatorView(style: .medium)
-    let height: Double = 60
+    let height: CGFloat = 60
     let layoutGuide = ScrollContentLayoutGuide()
     var startContinuingObserver: AnyCancellable? = nil
+    private var addedBottomInset: CGFloat = 0
     var scrollView: UIScrollView? { superview as? UIScrollView }
     open private(set) var isContinuing: Bool = false
 
@@ -38,18 +39,20 @@ open class ContinueControl: UIControl {
     
     open override func willMove(toSuperview newSuperview: UIView?) {
         super.willMove(toSuperview: newSuperview)
+        startContinuingObserver = nil
         if let oldScrollView = scrollView {
             oldScrollView.removeLayoutGuide(layoutGuide)
-            
-            if oldScrollView.contentInset.bottom.isNormal {
-                oldScrollView.contentInset.bottom -= height
+            if addedBottomInset != 0 {
+                oldScrollView.contentInset.bottom -= addedBottomInset
+                addedBottomInset = 0
             }
         }
         
         if let newScrollView = newSuperview as? UIScrollView {
             newScrollView.addLayoutGuide(layoutGuide)
             
-            if newScrollView.contentInset.bottom.isNormal {
+            if newScrollView.contentInset.bottom.isFinite {
+                addedBottomInset = height
                 newScrollView.contentInset.bottom += height
             }
         }
@@ -74,11 +77,7 @@ open class ContinueControl: UIControl {
                 )
             ])
             
-            startContinuingObserver = Publishers.CombineLatest(
-                scrollView.needsScrollContentSizePublisher,
-                scrollView.inversedContentOffsetPublisher
-            )
-            .map({ $0.0 && $0.1.y >= -height })
+            startContinuingObserver = scrollView.continueVisibilityPublisher(height: height)
             .removeDuplicates()
             .sink { [weak self] (isVisible) in
                 if isVisible {
@@ -93,8 +92,8 @@ open class ContinueControl: UIControl {
     /// beginContinuing when not isContinuing and trigger action.
     public func startContinuing() {
         guard !isContinuing else { return }
-        triggerPrimaryAction()
         beginContinuing()
+        triggerPrimaryAction()
     }
     
     func triggerPrimaryAction() {
@@ -133,20 +132,6 @@ extension UIScrollView {
         return point
     }
     
-    var inversedContentOffsetPublisher: AnyPublisher<CGPoint, Never> {
-        Publishers.CombineLatest4(
-            publisher(for: \.contentSize),
-            publisher(for: \.contentOffset),
-            publisher(for: \.contentInset),
-            publisher(for: \.safeAreaInsets)
-        )
-        .map({ [weak self] _ in
-            self?.inversedContentOffset
-        })
-        .compactMap({ $0 })
-        .eraseToAnyPublisher()
-    }
-    
     /// contentSize bigger than visible contentSize
     var needsScrollContentSize: Bool {
         var visibleContentSize: CGSize = .zero
@@ -157,15 +142,20 @@ extension UIScrollView {
         return contentSize.height.rounded() > visibleContentSize.height.rounded()
     }
     
-    var needsScrollContentSizePublisher: AnyPublisher<Bool, Never> {
-        Publishers.CombineLatest(
+    func continueVisibilityPublisher(height: CGFloat) -> AnyPublisher<Bool, Never> {
+        Publishers.CombineLatest4(
             publisher(for: \.contentSize),
+            publisher(for: \.contentOffset),
+            publisher(for: \.contentInset),
             publisher(for: \.safeAreaInsets)
         )
-        .map({ [weak self] _ in
-            self?.needsScrollContentSize
+        .combineLatest(
+            publisher(for: \.bounds).map(\.size).removeDuplicates()
+        )
+        .compactMap({ [weak self] _ in
+            guard let self else { return nil }
+            return needsScrollContentSize && inversedContentOffset.y >= -height
         })
-        .compactMap({ $0 })
         .eraseToAnyPublisher()
     }
 }
